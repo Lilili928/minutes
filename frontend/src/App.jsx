@@ -8,7 +8,7 @@ import ReactFlow, {
   useEdgesState,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { Sparkles, Trash2, Loader2, Cpu, Grid3X3, Check } from 'lucide-react'
+import { Sparkles, Trash2, Loader2, Cpu, Grid3X3, Network, Check } from 'lucide-react'
 import { toPng, toSvg } from 'html-to-image'
 import dagre from 'dagre'
 
@@ -23,11 +23,12 @@ import ConfirmModal from './components/ConfirmModal'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
+// Deeper shades visible on light backgrounds
 const NODE_COLORS = {
-  people: '#00d4ff',
-  topic: '#00ff88',
-  decision: '#ff8800',
-  action: '#ffd700',
+  people: '#0e7490',   // cyan-700
+  topic: '#047857',     // emerald-700
+  decision: '#ea580c',   // orange-600
+  action: '#ca8a04',     // yellow-600
 }
 
 const nodeTypes = {
@@ -84,17 +85,79 @@ function saveMeetingsToStorage(meetings) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(meetings)) } catch { /* quota exceeded */ }
 }
 
-// --- Dagre auto-layout ---
+// --- Layout engines ---
 const NODE_DIMS = { people: [220, 110], topic: [240, 100], decision: [240, 140], action: [240, 110] }
 
-function autoLayout(nodes, edges) {
+/** Dagre left-to-right — clustered by category flow */
+function clusteredLayout(nodes, edges) {
   const g = new dagre.graphlib.Graph()
   g.setDefaultEdgeLabel(() => ({}))
   g.setGraph({ rankdir: 'LR', nodesep: 80, ranksep: 100 })
-  nodes.forEach(node => { const [w, h] = NODE_DIMS[node.type] || [220, 120]; g.setNode(node.id, { width: w, height: h }) })
-  edges.forEach(edge => g.setEdge(edge.source, edge.target))
+  nodes.forEach(n => { const [w, h] = NODE_DIMS[n.type] || [220, 120]; g.setNode(n.id, { width: w, height: h }) })
+  edges.forEach(e => g.setEdge(e.source, e.target))
   dagre.layout(g)
-  return nodes.map(node => { const pos = g.node(node.id); const [w, h] = NODE_DIMS[node.type] || [220, 120]; return { ...node, position: { x: pos.x - w / 2, y: pos.y - h / 2 } } })
+  return nodes.map(n => { const p = g.node(n.id); const [w, h] = NODE_DIMS[n.type] || [220, 120]; return { ...n, position: { x: p.x - w / 2, y: p.y - h / 2 } } })
+}
+
+/** Force-directed — minimizes edge lengths, packs nodes densely */
+function compactLayout(nodes, edges) {
+  const positions = nodes.map(n => ({ ...n.position }))
+
+  const k = 160 // ideal spring length — shorter = denser
+  const iterations = 180
+
+  for (let iter = 0; iter < iterations; iter++) {
+    const temp = 1 - iter / iterations
+    const forces = nodes.map(() => ({ dx: 0, dy: 0 }))
+
+    // Repulsion — all pairs (weaker to allow density)
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        let dx = positions[j].x - positions[i].x
+        let dy = positions[j].y - positions[i].y
+        let dist = Math.sqrt(dx * dx + dy * dy) || 1
+        if (dist > 600) continue
+        const f = (k * k) / dist * temp * 0.35
+        dx /= dist; dy /= dist
+        forces[i].dx -= dx * f; forces[i].dy -= dy * f
+        forces[j].dx += dx * f; forces[j].dy += dy * f
+      }
+    }
+
+    // Attraction — connected pairs (stronger to pull close)
+    for (const e of edges) {
+      const si = nodes.findIndex(n => n.id === e.source)
+      const ti = nodes.findIndex(n => n.id === e.target)
+      if (si < 0 || ti < 0) continue
+      let dx = positions[ti].x - positions[si].x
+      let dy = positions[ti].y - positions[si].y
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1
+      const f = (dist * dist) / k * temp * 0.012
+      dx /= dist; dy /= dist
+      forces[si].dx += dx * f; forces[si].dy += dy * f
+      forces[ti].dx -= dx * f; forces[ti].dy -= dy * f
+    }
+
+    // Strong center gravity — keep everything in view
+    for (let i = 0; i < positions.length; i++) {
+      forces[i].dx -= positions[i].x * 0.005 * temp
+      forces[i].dy -= positions[i].y * 0.005 * temp
+    }
+
+    // Apply (clamped)
+    for (let i = 0; i < positions.length; i++) {
+      positions[i].x += Math.max(-30, Math.min(30, forces[i].dx))
+      positions[i].y += Math.max(-30, Math.min(30, forces[i].dy))
+    }
+  }
+
+  // Center the graph
+  let cx = 0, cy = 0
+  positions.forEach(p => { cx += p.x; cy += p.y })
+  cx /= positions.length; cy /= positions.length
+  positions.forEach(p => { p.x -= cx - 500; p.y -= cy - 300 })
+
+  return nodes.map((n, i) => ({ ...n, position: { x: positions[i].x, y: positions[i].y } }))
 }
 
 export default function App() {
@@ -111,7 +174,14 @@ export default function App() {
   const [meetings, setMeetings] = useState(() => loadMeetings())
   const [currentMeetingId, setCurrentMeetingId] = useState(null)
   const [currentMeetingName, setCurrentMeetingName] = useState('')
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Panel resize
+  const [panelHeight, setPanelHeight] = useState(96)
+  const resizeRef = useRef({ y: 0, h: 96 })
+
+  // Layout mode
+  const [layoutMode, setLayoutMode] = useState('clustered') // 'clustered' | 'compact'
 
   // Modal & edit state
   const [confirmModal, setConfirmModal] = useState(null)
@@ -155,10 +225,8 @@ export default function App() {
     if (state) { setNodes(state.nodes); setEdges(state.edges) }
   }
 
-  // Save initial state on mount
   useEffect(() => { pushHistory() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Keyboard listener for Ctrl+Z / Ctrl+Y
   useEffect(() => {
     const handler = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
@@ -362,6 +430,21 @@ export default function App() {
 
   const handleEdgeEditCancel = useCallback(() => setEdgeEdit(null), [])
 
+  const handleResizeStart = useCallback((e) => {
+    e.preventDefault()
+    resizeRef.current = { y: e.clientY, h: panelHeight }
+    const onMove = (ev) => {
+      const delta = resizeRef.current.y - ev.clientY
+      setPanelHeight(Math.max(60, Math.min(400, resizeRef.current.h + delta)))
+    }
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+    }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }, [panelHeight])
+
   const onSelectionChange = useCallback(
     ({ nodes: selectedNodes, edges: selectedEdges }) => {
       const newNodeIds = new Set(selectedNodes.map(n => n.id))
@@ -375,18 +458,16 @@ export default function App() {
           return eds.map((e) => ({ ...e, style: { ...e.style, stroke: '#9ca3af', strokeWidth: 1.5 } }))
         }
         return eds.map((e) => {
-          // Direct edge selection — dark highlight
           if (newEdgeIds.has(e.id)) {
             return { ...e, style: { ...e.style, stroke: '#1f2937', strokeWidth: 3 } }
           }
-          // Node-connected highlight
           const connected = newNodeIds.has(e.source) || newNodeIds.has(e.target)
           if (!connected) {
             return { ...e, style: { ...e.style, stroke: '#9ca3af', strokeWidth: 1.5 } }
           }
           const selId = newNodeIds.has(e.source) ? e.source : e.target
           const selNode = selectedNodes.find((n) => n.id === selId)
-          const color = NODE_COLORS[selNode?.type] || '#00d4ff'
+          const color = NODE_COLORS[selNode?.type] || '#0e7490'
           return { ...e, style: { ...e.style, stroke: color, strokeWidth: 3 } }
         })
       })
@@ -407,9 +488,10 @@ export default function App() {
     [setNodes, pushHistory],
   )
 
-  const handleAutoLayout = useCallback(() => {
+  const handleAutoLayout = useCallback((mode) => {
     pushHistory()
-    setNodes((nds) => autoLayout(nds, edges))
+    const fn = mode === 'compact' ? compactLayout : clusteredLayout
+    setNodes((nds) => fn(nds, edges))
   }, [edges, setNodes, pushHistory])
 
   // --- Parse ---
@@ -449,9 +531,9 @@ export default function App() {
       {/* Header */}
       <header className="h-12 shrink-0 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-10">
         <div className="flex items-center gap-3">
-          <Cpu size={18} className="text-[#00b8e6]" />
+          <Cpu size={18} className="text-[#0e7490]" />
           <h1 className="text-sm font-bold text-gray-800 tracking-widest uppercase font-mono">
-            OMNIMEETING<span className="text-[#00b8e6]">_</span>CANVAS
+            OMNIMEETING<span className="text-[#0e7490]">_</span>CANVAS
           </h1>
           <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 font-mono">v2.0</span>
         </div>
@@ -505,9 +587,25 @@ export default function App() {
 
         <Toolbar onAdd={handleAddNode} />
 
-        <button onClick={handleAutoLayout} className="auto-layout-btn" style={{ position: 'absolute', left: 14, bottom: 14, zIndex: 10 }} title="Auto-arrange nodes | Ctrl+Z to undo">
-          <Grid3X3 size={14} />AUTO LAYOUT
-        </button>
+        {/* Layout mode toggle */}
+        <div className="layout-toggle" style={{ position: 'absolute', left: 14, bottom: 14, zIndex: 10 }}>
+          <button
+            onClick={() => { setLayoutMode('clustered'); handleAutoLayout('clustered') }}
+            className={`layout-btn ${layoutMode === 'clustered' ? 'layout-btn-active' : ''}`}
+            title="Clustered layout — left-to-right by category"
+          >
+            <Grid3X3 size={13} />
+            <span>Clustered</span>
+          </button>
+          <button
+            onClick={() => { setLayoutMode('compact'); handleAutoLayout('compact') }}
+            className={`layout-btn ${layoutMode === 'compact' ? 'layout-btn-active' : ''}`}
+            title="Compact layout — shortest edge lengths"
+          >
+            <Network size={13} />
+            <span>Compact</span>
+          </button>
+        </div>
 
         {/* Edge edit overlay */}
         {edgeEdit && (
@@ -535,11 +633,20 @@ export default function App() {
             </div>
           )}
           <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-lg shadow-black/5">
+            {/* Resize drag handle */}
+            <div
+              onMouseDown={handleResizeStart}
+              className="flex items-center justify-center h-4 cursor-ns-resize hover:bg-gray-50 rounded-t-xl border-b border-gray-100 -mx-3 -mt-3 mb-3 group"
+              title="Drag to resize panel"
+            >
+              <div className="w-8 h-0.5 bg-gray-300 group-hover:bg-gray-400 rounded-full transition-colors" />
+            </div>
             <textarea
               value={meetingText}
               onChange={(e) => setMeetingText(e.target.value)}
               placeholder="Paste meeting transcript here...&#10;DeepSeek AI will parse it into People / Topic / Decision / Action nodes."
-              className="w-full h-20 bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 placeholder-gray-400 font-mono resize-none focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/10 transition-colors"
+              style={{ height: panelHeight }}
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 placeholder-gray-400 font-mono resize-none focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/10 transition-colors"
               disabled={parsing}
             />
             <div className="flex items-center justify-between mt-2">

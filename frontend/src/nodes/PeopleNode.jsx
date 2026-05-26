@@ -2,11 +2,11 @@ import { useRef, useEffect } from 'react'
 import { Handle, Position, useReactFlow } from 'reactflow'
 import { User } from 'lucide-react'
 
-const COLOR = '#00d4ff'
+const COLOR = '#0e7490'
 
 const AVATAR_COLORS = [
-  '#00d4ff', '#ff6b9d', '#a78bfa', '#34d399',
-  '#fbbf24', '#f472b6', '#60a5fa', '#fb923c',
+  '#0e7490', '#be185d', '#7c3aed', '#047857',
+  '#b45309', '#db2777', '#2563eb', '#ea580c',
 ]
 
 function getInitials(name) {

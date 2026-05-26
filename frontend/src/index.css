@@ -352,6 +352,49 @@
   transform: scale(0.96);
 }
 
+/* ========== LAYOUT TOGGLE ========== */
+.layout-toggle {
+  display: flex;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.layout-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.layout-btn:hover {
+  color: #374151;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.layout-btn-active {
+  color: #1f2937;
+  background: rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+}
+
+.layout-btn + .layout-btn {
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
 /* ========== SIDEBAR ========== */
 .sidebar-toggle {
   position: absolute;

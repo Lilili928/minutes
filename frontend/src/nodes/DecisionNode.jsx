@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react'
 import { Handle, Position, useReactFlow } from 'reactflow'
 import { Flag } from 'lucide-react'
 
-const COLOR = '#ff8800'
+const COLOR = '#ea580c'
 
 function parseVoters(voters) {
   if (!voters) return { approved: 0, total: 0, label: '' }

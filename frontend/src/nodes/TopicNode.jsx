@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react'
 import { Handle, Position, useReactFlow } from 'reactflow'
 import { MessageSquare } from 'lucide-react'
 
-const COLOR = '#00ff88'
+const COLOR = '#047857'
 
 export default function TopicNode({ id, data }) {
   const { setNodes } = useReactFlow()

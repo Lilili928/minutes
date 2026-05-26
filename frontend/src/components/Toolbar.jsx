@@ -1,10 +1,10 @@
 import { UserPlus, MessageSquarePlus, Flag, Zap } from 'lucide-react'
 
 const NODE_TYPES = [
-  { type: 'people', label: 'Person', color: '#00d4ff', Icon: UserPlus },
-  { type: 'topic', label: 'Topic', color: '#00ff88', Icon: MessageSquarePlus },
-  { type: 'decision', label: 'Decision', color: '#ff8800', Icon: Flag },
-  { type: 'action', label: 'Action', color: '#ffd700', Icon: Zap },
+  { type: 'people', label: 'Person', color: '#0e7490', Icon: UserPlus },
+  { type: 'topic', label: 'Topic', color: '#047857', Icon: MessageSquarePlus },
+  { type: 'decision', label: 'Decision', color: '#ea580c', Icon: Flag },
+  { type: 'action', label: 'Action', color: '#ca8a04', Icon: Zap },
 ]
 
 export default function Toolbar({ onAdd }) {

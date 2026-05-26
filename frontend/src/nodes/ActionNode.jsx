@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react'
 import { Handle, Position, useReactFlow } from 'reactflow'
 import { Zap, Check } from 'lucide-react'
 
-const COLOR = '#ffd700'
+const COLOR = '#ca8a04'
 
 export default function ActionNode({ id, data }) {
   const { setNodes } = useReactFlow()
