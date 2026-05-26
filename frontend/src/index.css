@@ -273,6 +273,7 @@
   border-radius: 12px;
   padding: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toolbar-label {
@@ -320,6 +321,73 @@
 
 .toolbar-btn:hover .toolbar-btn-text {
   color: #374151;
+}
+
+/* ========== INLINE TOOLBAR (bottom control center) ========== */
+.toolbar-inline {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 10px 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
+
+.toolbar-inline-label {
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  color: #6b7280;
+  text-align: center;
+  letter-spacing: 1px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  margin-bottom: 1px;
+}
+
+.toolbar-inline-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #4b5563;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.toolbar-inline-btn:hover {
+  background: color-mix(in srgb, var(--t-color, #00d4ff) 8%, transparent);
+  border-color: color-mix(in srgb, var(--t-color, #00d4ff) 20%, transparent);
+  color: #1f2937;
+}
+
+.toolbar-inline-btn:active {
+  transform: scale(0.95);
+}
+
+.toolbar-inline-btn-text {
+  color: #6b7280;
+  display: none;
+}
+
+/* Show labels on wider viewports or when hovered */
+@media (min-width: 900px) {
+  .toolbar-inline-btn-text {
+    display: inline;
+  }
 }
 
 /* ========== AUTO-LAYOUT BUTTON ========== */

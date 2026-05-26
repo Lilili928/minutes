@@ -581,31 +581,30 @@ export default function App() {
           connectionLineStyle={{ stroke: '#9ca3af', strokeWidth: 2 }}
         >
           <Background color="#d1d5db" gap={32} size={1} />
-          <Controls className="!bg-white !border-gray-200 !rounded-xl" />
+          {/* Bottom-left: Controls + Layout toggle — shifts right when sidebar opens */}
+          <div style={{ position: 'absolute', bottom: 20, left: sidebarOpen ? 300 : 20, display: 'flex', alignItems: 'flex-end', gap: 16, zIndex: 50, transition: 'left 0.3s ease-in-out' }}>
+            <Controls style={{ position: 'relative', margin: 0 }} className="!bg-white !border-gray-200 !rounded-xl" />
+            <div className="layout-toggle">
+              <button
+                onClick={() => { setLayoutMode('clustered'); handleAutoLayout('clustered') }}
+                className={`layout-btn ${layoutMode === 'clustered' ? 'layout-btn-active' : ''}`}
+                title="Clustered layout — left-to-right by category"
+              >
+                <Grid3X3 size={13} />
+                <span>Clustered</span>
+              </button>
+              <button
+                onClick={() => { setLayoutMode('compact'); handleAutoLayout('compact') }}
+                className={`layout-btn ${layoutMode === 'compact' ? 'layout-btn-active' : ''}`}
+                title="Compact layout — shortest edge lengths"
+              >
+                <Network size={13} />
+                <span>Compact</span>
+              </button>
+            </div>
+          </div>
           <MiniMap nodeColor={nodeColor} maskColor="rgba(243,244,246,0.85)" className="!bg-white !border-gray-200 !rounded-xl" style={{ width: 160, height: 100 }} />
         </ReactFlow>
-
-        <Toolbar onAdd={handleAddNode} />
-
-        {/* Layout mode toggle */}
-        <div className="layout-toggle" style={{ position: 'absolute', left: 14, bottom: 14, zIndex: 10 }}>
-          <button
-            onClick={() => { setLayoutMode('clustered'); handleAutoLayout('clustered') }}
-            className={`layout-btn ${layoutMode === 'clustered' ? 'layout-btn-active' : ''}`}
-            title="Clustered layout — left-to-right by category"
-          >
-            <Grid3X3 size={13} />
-            <span>Clustered</span>
-          </button>
-          <button
-            onClick={() => { setLayoutMode('compact'); handleAutoLayout('compact') }}
-            className={`layout-btn ${layoutMode === 'compact' ? 'layout-btn-active' : ''}`}
-            title="Compact layout — shortest edge lengths"
-          >
-            <Network size={13} />
-            <span>Compact</span>
-          </button>
-        </div>
 
         {/* Edge edit overlay */}
         {edgeEdit && (
@@ -624,41 +623,45 @@ export default function App() {
           </div>
         )}
 
-        {/* Floating input panel */}
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 w-[520px] max-w-[90vw]">
-          {error && (
-            <div className="mb-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600 font-mono flex items-center justify-between">
-              <span>{error}</span>
-              <button onClick={() => setError('')} className="ml-2 text-red-400 hover:text-red-600 font-bold">×</button>
-            </div>
-          )}
-          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-lg shadow-black/5">
-            {/* Resize drag handle */}
-            <div
-              onMouseDown={handleResizeStart}
-              className="flex items-center justify-center h-4 cursor-ns-resize hover:bg-gray-50 rounded-t-xl border-b border-gray-100 -mx-3 -mt-3 mb-3 group"
-              title="Drag to resize panel"
-            >
-              <div className="w-8 h-0.5 bg-gray-300 group-hover:bg-gray-400 rounded-full transition-colors" />
-            </div>
-            <textarea
-              value={meetingText}
-              onChange={(e) => setMeetingText(e.target.value)}
-              placeholder="Paste meeting transcript here...&#10;DeepSeek AI will parse it into People / Topic / Decision / Action nodes."
-              style={{ height: panelHeight }}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 placeholder-gray-400 font-mono resize-none focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/10 transition-colors"
-              disabled={parsing}
-            />
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-[10px] text-gray-400 font-mono">Powered by DeepSeek AI</span>
-              <button
-                onClick={handleParse}
-                disabled={parsing || !meetingText.trim()}
-                className="flex items-center gap-2 px-4 py-1.5 bg-cyan-50 border border-cyan-200 text-cyan-600 rounded-lg text-xs font-bold font-mono hover:bg-cyan-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        {/* Bottom Control Center: + ADD toolbar + input panel */}
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-stretch gap-4 z-50">
+          <Toolbar onAdd={handleAddNode} variant="inline" />
+
+          <div className="w-[520px] max-w-[70vw]">
+            {error && (
+              <div className="mb-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600 font-mono flex items-center justify-between">
+                <span>{error}</span>
+                <button onClick={() => setError('')} className="ml-2 text-red-400 hover:text-red-600 font-bold">×</button>
+              </div>
+            )}
+            <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-lg shadow-black/5">
+              {/* Resize drag handle */}
+              <div
+                onMouseDown={handleResizeStart}
+                className="flex items-center justify-center h-4 cursor-ns-resize hover:bg-gray-50 rounded-t-xl border-b border-gray-100 -mx-3 -mt-3 mb-3 group"
+                title="Drag to resize panel"
               >
-                {parsing ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                {parsing ? 'PARSING...' : 'PARSE GRAPH'}
-              </button>
+                <div className="w-8 h-0.5 bg-gray-300 group-hover:bg-gray-400 rounded-full transition-colors" />
+              </div>
+              <textarea
+                value={meetingText}
+                onChange={(e) => setMeetingText(e.target.value)}
+                placeholder="Paste meeting transcript here...&#10;DeepSeek AI will parse it into People / Topic / Decision / Action nodes."
+                style={{ height: panelHeight }}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 placeholder-gray-400 font-mono resize-none focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/10 transition-colors"
+                disabled={parsing}
+              />
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-[10px] text-gray-400 font-mono">Powered by DeepSeek AI</span>
+                <button
+                  onClick={handleParse}
+                  disabled={parsing || !meetingText.trim()}
+                  className="flex items-center gap-2 px-4 py-1.5 bg-cyan-50 border border-cyan-200 text-cyan-600 rounded-lg text-xs font-bold font-mono hover:bg-cyan-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  {parsing ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  {parsing ? 'PARSING...' : 'PARSE GRAPH'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
