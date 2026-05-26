@@ -1,0 +1,17 @@
+{
+  "name": "omnimeeting-canvas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OMNIMEETING CANVAS — AI-powered meeting workspace",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix backend start",
+    "install:all": "npm install && npm --prefix frontend install && npm --prefix backend install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
