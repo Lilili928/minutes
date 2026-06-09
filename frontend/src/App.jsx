@@ -6,6 +6,7 @@ import ReactFlow, {
   MarkerType,
   useNodesState,
   useEdgesState,
+  useReactFlow,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { Sparkles, Trash2, Loader2, Cpu, Grid3X3, Network, Check } from 'lucide-react'
@@ -163,6 +164,7 @@ function compactLayout(nodes, edges) {
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+  const { fitView } = useReactFlow()
   const [meetingText, setMeetingText] = useState('')
   const [parsing, setParsing] = useState(false)
   const [error, setError] = useState('')
@@ -216,13 +218,13 @@ export default function App() {
     if (historyIdxRef.current <= 0) return
     historyIdxRef.current -= 1
     const state = historyRef.current[historyIdxRef.current]
-    if (state) { setNodes(state.nodes); setEdges(state.edges) }
+    if (state) { setNodes(state.nodes); setEdges(state.edges); setTimeout(() => fitView({ padding: 60, minZoom: 2 }), 50) }
   }
   redoRef.current = () => {
     if (historyIdxRef.current >= historyRef.current.length - 1) return
     historyIdxRef.current += 1
     const state = historyRef.current[historyIdxRef.current]
-    if (state) { setNodes(state.nodes); setEdges(state.edges) }
+    if (state) { setNodes(state.nodes); setEdges(state.edges); setTimeout(() => fitView({ padding: 60, minZoom: 2 }), 50) }
   }
 
   useEffect(() => { pushHistory() }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -273,7 +275,8 @@ export default function App() {
     setCurrentMeetingId(m.id)
     setCurrentMeetingName(m.name)
     selectedNodeIdsRef.current = new Set()
-  }, [meetings, setNodes, setEdges, pushHistory])
+    setTimeout(() => fitView({ padding: 60, minZoom: 2 }), 50)
+  }, [meetings, setNodes, setEdges, pushHistory, fitView])
 
   const handleDeleteMeeting = useCallback((id) => {
     setConfirmModal({
@@ -492,7 +495,8 @@ export default function App() {
     pushHistory()
     const fn = mode === 'compact' ? compactLayout : clusteredLayout
     setNodes((nds) => fn(nds, edges))
-  }, [edges, setNodes, pushHistory])
+    setTimeout(() => fitView({ padding: 60, minZoom: 2 }), 50)
+  }, [edges, setNodes, pushHistory, fitView])
 
   // --- Parse ---
   const handleParse = async () => {
@@ -507,6 +511,7 @@ export default function App() {
         pushHistory()
         setNodes(data.nodes)
         setEdges(data.edges || [])
+        setTimeout(() => fitView({ padding: 60, minZoom: 2 }), 50)
         selectedNodeIdsRef.current = new Set()
         const name = meetingText.trim().slice(0, 40).replace(/\n/g, ' ')
         const id = `meet-${Date.now()}`
@@ -574,9 +579,7 @@ export default function App() {
           deleteKeyCode={['Backspace', 'Delete']}
           nodeTypes={nodeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
-          defaultViewport={{ zoom: 1.5, x: 0, y: 0 }}
-          fitView
-          fitViewOptions={{ padding: 60, minZoom: 1.5 }}
+          defaultViewport={{ zoom: 2, x: 0, y: 0 }}
           attributionPosition="bottom-left"
           minZoom={0.3}
           connectionLineStyle={{ stroke: '#9ca3af', strokeWidth: 2 }}
