@@ -533,7 +533,7 @@ export default function App() {
         <div className="flex items-center gap-3">
           <Cpu size={18} className="text-[#0e7490]" />
           <h1 className="text-sm font-bold text-gray-800 tracking-widest uppercase font-mono">
-            OMNIMEETING<span className="text-[#0e7490]">_</span>CANVAS
+            minutes
           </h1>
           <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded border border-gray-200 font-mono">v2.0</span>
         </div>
