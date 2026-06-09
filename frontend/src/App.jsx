@@ -21,7 +21,7 @@ import Sidebar from './components/Sidebar'
 import ExportMenu from './components/ExportMenu'
 import ConfirmModal from './components/ConfirmModal'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'
+const API_URL = import.meta.env.DEV ? 'http://localhost:3001' : '/_/backend'
 
 // Deeper shades visible on light backgrounds
 const NODE_COLORS = {
