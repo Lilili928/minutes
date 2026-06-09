@@ -439,7 +439,7 @@ export default function App() {
     resizeRef.current = { y: e.clientY, h: panelHeight }
     const onMove = (ev) => {
       const delta = resizeRef.current.y - ev.clientY
-      setPanelHeight(Math.max(60, Math.min(400, resizeRef.current.h + delta)))
+      setPanelHeight(Math.max(96, Math.min(400, resizeRef.current.h + delta)))
     }
     const onUp = () => {
       document.removeEventListener('mousemove', onMove)
