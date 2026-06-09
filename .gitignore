@@ -45,3 +45,5 @@ __pycache__/
 
 # Uploaded files
 uploads/
+
+.vercel
