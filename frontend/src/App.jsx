@@ -634,7 +634,7 @@ export default function App() {
         )}
 
         {/* Bottom Control Center: + ADD toolbar + input panel */}
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-stretch gap-4 z-50">
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-end gap-4 z-50">
           <Toolbar onAdd={handleAddNode} variant="inline" />
 
           <div className="w-[520px] max-w-[70vw]">
