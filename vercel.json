@@ -1,23 +1,5 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "frontend/dist",
-  "installCommand": "npm install && npm --prefix frontend install",
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/_/backend/api/$1"
-    }
-  ],
-  "experimentalServices": {
-    "frontend": {
-      "root": "frontend",
-      "routePrefix": "/",
-      "framework": "vite"
-    },
-    "backend": {
-      "root": "backend",
-      "entrypoint": "index.js",
-      "routePrefix": "/_/backend"
-    }
-  }
+  "installCommand": "npm install && npm --prefix frontend install"
 }
