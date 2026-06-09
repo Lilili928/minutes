@@ -574,7 +574,7 @@ export default function App() {
           deleteKeyCode={['Backspace', 'Delete']}
           nodeTypes={nodeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
-          defaultViewport={{ x: 0, y: 0, zoom: 3 }}
+          defaultViewport={{ x: 0, y: 0, zoom: 2 }}
           attributionPosition="bottom-left"
           minZoom={0.1}
           connectionLineStyle={{ stroke: '#9ca3af', strokeWidth: 2 }}
