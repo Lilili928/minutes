@@ -574,10 +574,11 @@ export default function App() {
           deleteKeyCode={['Backspace', 'Delete']}
           nodeTypes={nodeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
+          defaultViewport={{ zoom: 1.5, x: 0, y: 0 }}
           fitView
-          fitViewOptions={{ padding: 60 }}
+          fitViewOptions={{ padding: 60, minZoom: 1.5 }}
           attributionPosition="bottom-left"
-          minZoom={0.1}
+          minZoom={0.3}
           connectionLineStyle={{ stroke: '#9ca3af', strokeWidth: 2 }}
         >
           <Background color="#d1d5db" gap={32} size={1} />
