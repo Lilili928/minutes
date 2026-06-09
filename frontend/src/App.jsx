@@ -275,7 +275,7 @@ export default function App() {
     setCurrentMeetingName(m.name)
     selectedNodeIdsRef.current = new Set()
     setTimeout(() => {
-      rfInstance.current?.fitView({ padding: 0.2, minZoom: 0.9, maxZoom: 1.2, duration: 300 })
+      rfInstance.current?.fitView({ padding: 0.2, minZoom: 0.4, maxZoom: 0.85, duration: 300 })
     }, 50)
   }, [meetings, setNodes, setEdges, pushHistory])
 
@@ -522,7 +522,7 @@ export default function App() {
         setCurrentMeetingName(name)
         // Force zoom to ~1.0 after render
         setTimeout(() => {
-          rfInstance.current?.fitView({ padding: 0.2, minZoom: 0.9, maxZoom: 1.2, duration: 300 })
+          rfInstance.current?.fitView({ padding: 0.2, minZoom: 0.4, maxZoom: 0.85, duration: 300 })
         }, 50)
       } else {
         setError('AI returned an empty graph. Try more detailed meeting notes.')
@@ -584,7 +584,7 @@ export default function App() {
           defaultEdgeOptions={defaultEdgeOptions}
           defaultViewport={{ x: 0, y: 0, zoom: 1.0 }}
           fitView
-          fitViewOptions={{ padding: 0.2, minZoom: 0.9, maxZoom: 1.2 }}
+          fitViewOptions={{ padding: 0.2, minZoom: 0.4, maxZoom: 0.85 }}
           attributionPosition="bottom-left"
           minZoom={0.1}
           connectionLineStyle={{ stroke: '#9ca3af', strokeWidth: 2 }}
