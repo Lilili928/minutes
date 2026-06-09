@@ -13,6 +13,7 @@
     background: #f3f4f6;
     color: #374151;
     overflow: hidden;
+    zoom: 1.5;
   }
 
   #root {
